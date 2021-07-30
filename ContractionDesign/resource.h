@@ -8,6 +8,8 @@
 #define IDC_EXCEL_AREA                  1001
 #define IDC_FIND_EXCEL_BTN              1002
 #define IDC_VERSION_STATIC              1003
+#define IDC_CELL_EREA_EXCEL_BTN2        1004
+#define IDC_CELL_CLEAR_EXCEL_BTN        1004
 
 // Next default values for new objects
 // 

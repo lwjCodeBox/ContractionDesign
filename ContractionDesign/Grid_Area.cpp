@@ -24,6 +24,14 @@ BEGIN_MESSAGE_MAP(Grid_Area, CWnd)
 	ON_WM_CREATE()
 	ON_WM_DESTROY()
 	ON_WM_PAINT()
+
+	//ON_NOTIFY(GVN_SELCHANGED, GRID_ID_NUM, OnGridEndSelChange)
+
+	ON_NOTIFY(GVN_BEGINLABELEDIT, GRID_ID_NUM, OnGridStartEdit)
+	ON_NOTIFY(GVN_ENDLABELEDIT, GRID_ID_NUM, OnGridEndEdit)
+
+	/*ON_NOTIFY(NM_DBLCLK, GRID_ID_NUM, OnGridDblClick)
+	ON_NOTIFY(NM_CLICK, GRID_ID_NUM, OnGridClick)*/	
 END_MESSAGE_MAP()
 
 
@@ -70,26 +78,32 @@ void Grid_Area::UpdateGridInfo()
 	m_pic_ctrl_rect.bottom -= 2;
 	
 	CString s;
-	if (m_grid.Create(m_pic_ctrl_rect, this, 32000, WS_CHILD | WS_VISIBLE | WS_EX_CLIENTEDGE))
+	if (m_grid.Create(m_pic_ctrl_rect, this, GRID_ID_NUM, WS_CHILD | WS_VISIBLE | WS_EX_CLIENTEDGE))
 	{
 		m_grid.SetRowCount(202);
-		m_grid.SetColumnCount(7);
-		
-		/*for (int i = 0; i < 7; i++)
-		{
-			s.Format(L"%d 열", i);
-			m_grid.SetItemText(0, i, s);
-		}
-
-		for (int i = 1; i < ROW_MAX_COUNT; i++)
-		{
-			s.Format(L"SPLINE [%d] 500, 22", i);
-			m_grid.SetItemText(i, 0, s);
-		}
-		*/
-
+		m_grid.SetColumnCount(8);				
 	}
+	m_grid.SetItemText(0, 0, L"Xm(A)");
+	m_grid.SetItemText(0, 1, L"Hi(B)");
+	m_grid.SetItemText(0, 2, L"Ho(C)");
+	m_grid.SetItemText(0, 3, L"L (D)");
+	m_grid.SetItemText(0, 4, L"X (E)");
+	m_grid.SetItemText(0, 5, L"h (F)");
+	m_grid.SetItemText(0, 6, L"  (G)");
+	m_grid.SetItemText(0, 7, L"X/L =  (H)");
+
+	m_grid.SetItemText(1, 0, L"0");
+	m_grid.SetItemText(1, 1, L"3000");
+	m_grid.SetItemText(1, 2, L"1000");
+	m_grid.SetItemText(1, 3, L"6000");
+	m_grid.SetItemText(1, 4, L"0");
+	m_grid.SetItemText(1, 5, L"0");
+	m_grid.SetItemText(1, 6, L"0");
+	m_grid.SetItemText(1, 7, L"0");
 	
+	m_bRejectEditAttempts = TRUE;
+	m_bRejectEditChanges = TRUE;
+
 	m_grid.SetFixedRowCount(1);
 	m_grid.SetBkColor(PIC_CTRL_BK_COLOR);
 	//m_grid.SetBkColor(RGB(100, 100, 100));
@@ -99,14 +113,10 @@ void Grid_Area::UpdateGridInfo()
 	m_grid.SetTrackFocusCell(true);
 	m_grid.SetEditable(true); // 셀 더블 클릭 하면 내용 수정할 수 없도록 막음.
 	m_grid.EnableTitleTips(true);
+	//m_grid.SetItemFormat(1, 1, 2);// 0:왼쪽 정렬, 1:가운데 정렬, 2:오른쪽정렬
 
-	m_grid.SetColumnWidth(5, 150); // column width
-	
-	int w = 0;
-	for (int i = 0; i < m_grid.GetColumnCount() - 1; w += m_grid.GetColumnWidth(i++));
-	
-	w = m_pic_ctrl_rect.Width() - w - 22;
-	m_grid.SetColumnWidth(6, w); // column width
+	m_grid.SetColumnWidth(5, 155); // column width
+	m_grid.SetColumnWidth(6, 170); // column width		
 }
 //-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
@@ -138,3 +148,147 @@ void Grid_Area::OnPaint()
 	dc.Rectangle(m_pic_ctrl_rect.left + 1, m_pic_ctrl_rect.top + 1, m_pic_ctrl_rect.right - 1, m_pic_ctrl_rect.bottom - 1);
 }
 //-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+// GVN_BEGINLABELEDIT
+void Grid_Area::OnGridStartEdit(NMHDR *pNotifyStruct, LRESULT *pResult)
+{
+	NM_GRIDVIEW *pItem = (NM_GRIDVIEW *)pNotifyStruct;
+	//*pResult = (m_bRejectEditAttempts) ? -1 : 0;
+}
+
+// GVN_ENDLABELEDIT
+void Grid_Area::OnGridEndEdit(NMHDR *pNotifyStruct, LRESULT *pResult)
+{
+	NM_GRIDVIEW *pItem = (NM_GRIDVIEW *)pNotifyStruct;
+	//*pResult = (m_bRejectEditChanges) ? -1 : 0;	
+	
+	Translate_Value(m_cur_combo_pos);
+}
+
+void Grid_Area::Translate_Value(int a_select)
+{	
+	CString str;
+	CString str_result;	
+	double d_result;
+	double value;
+	double A = _tstof(m_grid.GetItemText(1, 0));
+	double B = _tstof(m_grid.GetItemText(1, 1));
+	double C = _tstof(m_grid.GetItemText(1, 2));
+	double D = _tstof(m_grid.GetItemText(1, 3));		
+	
+	switch (a_select) {
+	case 0: // Cubic
+		for (int i = 1; i < ROW_MAX_COUNT; ++i) {
+			// E열
+			str = m_grid.GetItemText(i, 4);
+			value = _tstof(str);
+
+			d_result = value + (D / 200);
+
+			str_result.Format(L"%.1f", floor(d_result * 10) / 10);
+			m_grid.SetItemText(i + 1, 4, str_result);
+
+			// F열
+			str = m_grid.GetItemText(i, 4);
+			value = _tstof(str);
+
+			d_result = (B / 2) - ((B - C) / 2) * ((3 * pow((value / D), 2)) - (2 * pow((value / D), 3)));
+
+			str_result.Format(L"%.4f", floor(d_result * 10000) / 10000);
+			m_grid.SetItemText(i, 5, str_result);
+
+			// G열
+			str_result.Format(L"SPLINE %s, %s", m_grid.GetItemText(i, 4), m_grid.GetItemText(i, 5));
+			m_grid.SetItemText(i, 6, str_result);
+		}
+		break;
+
+	case 1: // Cosine
+		MessageBox(L"Cosine 작업안됨.", NULL, MB_ICONERROR);
+		return;
+
+	case 2: // Morel
+		for (int i = 1; i < ROW_MAX_COUNT; ++i) {
+			// E열
+			str = m_grid.GetItemText(i, 4);
+			value = _tstof(str);
+
+			d_result = value + (D / 200);
+
+			str_result.Format(L"%.1f", floor(d_result * 10) / 10);
+			m_grid.SetItemText(i + 1, 4, str_result);
+
+			// F열
+			str = m_grid.GetItemText(i, 4);
+			value = _tstof(str);
+					
+			d_result = (C / 2) + ((B - C) / 2) * (1 - (pow((D / A), 2)) * (pow((value / D), 3)));
+
+			str_result.Format(L"%.4f", floor(d_result * 10000) / 10000);
+			m_grid.SetItemText(i, 5, str_result);
+
+			// G열
+			str_result.Format(L"SPLINE %s, %s", m_grid.GetItemText(i, 4), m_grid.GetItemText(i, 5));
+			m_grid.SetItemText(i, 6, str_result);
+		}
+		break;
+
+	case 3: // 2-Cubic
+		MessageBox(L"2-Cubic 작업안됨.", NULL, MB_ICONERROR);
+		return;
+
+	case 4: // 4th-order
+		MessageBox(L"4th-order 작업안됨.", NULL, MB_ICONERROR);		
+		return;
+
+	case 5: // 5th-order
+		// E열
+		for (int i = 1; i < ROW_MAX_COUNT; ++i) {
+			// E열
+			str = m_grid.GetItemText(i, 4);
+			value = _tstof(str);
+
+			d_result = value + (D / 200);
+
+			str_result.Format(L"%.1f", floor(d_result * 10) / 10);
+			m_grid.SetItemText(i + 1, 4, str_result);
+
+			// H열
+			str = m_grid.GetItemText(i, 4);
+			value = _tstof(str);
+
+			d_result = value / D;
+			str_result.Format(L"%.4f", floor(d_result * 10000) / 10000);
+			m_grid.SetItemText(i, 7, str_result);
+
+			// F열
+			str = m_grid.GetItemText(i, 7);
+			value = _tstof(str);
+
+			d_result = ((-10 * pow(value, 3) + 15 * pow(value, 4) - 6 * pow(value, 5)) * (B - C)) + B;
+
+			str_result.Format(L"%.4f", floor(d_result * 10000) / 10000);
+			m_grid.SetItemText(i, 5, str_result);
+
+			// G열
+			str_result.Format(L"SPLINE %s, %s", m_grid.GetItemText(i, 4), m_grid.GetItemText(i, 5));
+			m_grid.SetItemText(i, 6, str_result);
+		}
+		break;
+
+	}
+	m_grid.Invalidate();
+}
+//-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+void Grid_Area::OnRejectEditAttempts()
+{
+	m_bRejectEditAttempts = !m_bRejectEditAttempts;
+	//UpdateMenuUI();
+}
+
+void Grid_Area::OnRejectEditChanges()
+{
+	m_bRejectEditChanges = !m_bRejectEditChanges;
+	//UpdateMenuUI();
+}

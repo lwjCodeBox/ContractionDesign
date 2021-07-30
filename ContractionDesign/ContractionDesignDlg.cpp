@@ -37,6 +37,7 @@ BEGIN_MESSAGE_MAP(CContractionDesignDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_FIND_EXCEL_BTN, &CContractionDesignDlg::OnBnClickedFindExcelBtn)
 	ON_CBN_SELCHANGE(IDC_EXCEL_SHEET_COMBO, &CContractionDesignDlg::On_ComboChange)
 	ON_WM_CTLCOLOR()
+	ON_BN_CLICKED(IDC_CELL_CLEAR_EXCEL_BTN, &CContractionDesignDlg::OnBnClickedCellClearExcelBtn)
 END_MESSAGE_MAP()
 
 
@@ -52,11 +53,22 @@ BOOL CContractionDesignDlg::OnInitDialog()
 	SetIcon(m_hIcon, FALSE);		// 작은 아이콘을 설정합니다.
 
 	// 버전 정보
-	SetDlgItemText(IDC_VERSION_STATIC, L"[Version : 1.0]");
+	SetDlgItemText(IDC_VERSION_STATIC, L"[Version : 2.0]");
 
 	// 대화상자 배경색 변경
 	SetBackgroundColor(RGB(50, 50, 50));
 
+	// 콤보 박스 세팅
+	m_sheetName_combo.AddString(L"Cubic");
+	m_sheetName_combo.AddString(L"Cosine");
+	m_sheetName_combo.AddString(L"Morel");
+	m_sheetName_combo.AddString(L"2-Cubic");
+	m_sheetName_combo.AddString(L"4th-order");
+	m_sheetName_combo.AddString(L"5th-order");
+	m_sheetName_combo.SetCurSel(0);
+	m_grid_area.m_cur_combo_pos = 0;
+
+	// picture contorl과 그리드 생성 그리고 연결
 	m_grid_area.CreateGridArea(IDC_EXCEL_AREA, this, 31000); //IDC_TOOL_BAR_RECT은 picture control의 ID 이름.
 	return TRUE;  // 포커스를 컨트롤에 설정하지 않으면 TRUE를 반환합니다.
 }
@@ -88,6 +100,19 @@ void CContractionDesignDlg::OnPaint()
 	{
 		CDialogEx::OnPaint();
 	}
+}
+//-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+BOOL CContractionDesignDlg::PreTranslateMessage(MSG *pMsg)
+{
+	if (pMsg->message == WM_KEYDOWN) {
+		//if (pMsg->wParam == VK_ESCAPE)
+		//{
+		//	return true; // true면 동작을 안먹게 함. false면 동작을 먹게 함.
+		//}
+	}
+
+	return CDialogEx::PreTranslateMessage(pMsg);
 }
 //-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
@@ -157,17 +182,17 @@ void CContractionDesignDlg::Set_combo()
 	}
 
 	m_sheetName_combo.SetCurSel(0);
-	On_ComboChange();
-
-	// 콤보 박스에서 텍스트 가져오기
-	///*CString sheetName = */m_sheetName_combo.GetLBText(m_sheetName_combo.GetCurSel(), 0);
-	//m_excel.Load_Excel_Sheet(sheetName);
-	
+	On_ComboChange();	
 }
 //-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
 void CContractionDesignDlg::On_ComboChange()
 {
+	m_grid_area.m_cur_combo_pos = m_sheetName_combo.GetCurSel();
+	m_grid_area.Cell_Clear();
+	m_grid_area.Translate_Value(m_grid_area.m_cur_combo_pos);
+
+#if 0 // 엑셀을 읽어오는 버전으로 사용한다면 이 주석을 풀어야 한다.
 	CString buf;
 	int combo_index = m_sheetName_combo.GetCurSel();
 	int len = m_sheetName_combo.GetLBTextLen(combo_index);
@@ -178,6 +203,7 @@ void CContractionDesignDlg::On_ComboChange()
 		MessageBox(L"해당 엑셀 시트를 읽어올 수 없습니다.", NULL, MB_ICONERROR);
 
 	buf.ReleaseBuffer();
+#endif
 }
 //-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
@@ -192,33 +218,24 @@ bool CContractionDesignDlg::Load_Excel_Sheet(CString a_sheetName)
 		int col_start = 0; // (열 시작 위치)
 		int col_end = 6;
 		
-
 		for (int i = row_start; i <= row_end; ++i) {
 			for (int j = col_start; j <= col_end; ++j) {
-				str = m_excel.Get_Sheet(a_sheetName)->readStr(i, j); // row(행), col(열)
+				str = m_excel.Get_Sheet(a_sheetName)->readStr(i, j); // row(행), col(열) readStr(1, 0);
 				m_grid_area.Write_text_on_the_grid(i-1, j, str);
 			}
 		}
 
 		m_grid_area.Invalidate();
-		//str = m_excel.Get_Sheet(a_sheetName)->readStr(1, 0); // row(행), col(열)
-		//AfxMessageBox(str);
+
 		return true;
 	}
 
 	return false;
 }
+//-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
-
-BOOL CContractionDesignDlg::PreTranslateMessage(MSG *pMsg)
+void CContractionDesignDlg::OnBnClickedCellClearExcelBtn()
 {
-	if (pMsg->message == WM_KEYDOWN) {
-		if (pMsg->wParam == VK_ESCAPE)
-		{
-			return true; // true면 동작을 안먹게 함. false면 동작을 먹게 함.
-		}
-	}
-
-	return CDialogEx::PreTranslateMessage(pMsg);
+	m_grid_area.Cell_Clear();
 }
 //-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
