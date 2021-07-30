@@ -19,8 +19,8 @@
 
 CContractionDesignDlg::CContractionDesignDlg(CWnd* pParent /*=nullptr*/)
 	: CDialogEx(IDD_CONTRACTIONDESIGN_DIALOG, pParent)
-{
-	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
+{	                                  
+	m_hIcon = AfxGetApp()->LoadIcon(IDI_EXE_ICON); // IDR_MAINFRAME -> IDI_EXE_ICON 변경
 }
 
 void CContractionDesignDlg::DoDataExchange(CDataExchange* pDX)
@@ -53,7 +53,7 @@ BOOL CContractionDesignDlg::OnInitDialog()
 	SetIcon(m_hIcon, FALSE);		// 작은 아이콘을 설정합니다.
 
 	// 버전 정보
-	SetDlgItemText(IDC_VERSION_STATIC, L"[Version : 2.1]");
+	SetDlgItemText(IDC_VERSION_STATIC, L"[Version : 2.3]");
 
 	// 대화상자 배경색 변경
 	SetBackgroundColor(RGB(50, 50, 50));
@@ -106,10 +106,10 @@ void CContractionDesignDlg::OnPaint()
 BOOL CContractionDesignDlg::PreTranslateMessage(MSG *pMsg)
 {
 	if (pMsg->message == WM_KEYDOWN) {
-		//if (pMsg->wParam == VK_ESCAPE)
-		//{
-		//	return true; // true면 동작을 안먹게 함. false면 동작을 먹게 함.
-		//}
+		if (pMsg->wParam == VK_ESCAPE)
+		{
+			return true; // true면 동작을 안먹게 함. false면 동작을 먹게 함.
+		}
 	}
 
 	return CDialogEx::PreTranslateMessage(pMsg);

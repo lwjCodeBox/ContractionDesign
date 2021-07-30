@@ -24,13 +24,8 @@ BEGIN_MESSAGE_MAP(Grid_Area, CWnd)
 	ON_WM_DESTROY()
 	ON_WM_PAINT()
 
-	//ON_NOTIFY(GVN_SELCHANGED, GRID_ID_NUM, OnGridEndSelChange)
-
 	ON_NOTIFY(GVN_BEGINLABELEDIT, GRID_ID_NUM, OnGridStartEdit)
 	ON_NOTIFY(GVN_ENDLABELEDIT, GRID_ID_NUM, OnGridEndEdit)
-
-	/*ON_NOTIFY(NM_DBLCLK, GRID_ID_NUM, OnGridDblClick)
-	ON_NOTIFY(NM_CLICK, GRID_ID_NUM, OnGridClick)*/	
 END_MESSAGE_MAP()
 
 
@@ -98,7 +93,6 @@ void Grid_Area::UpdateGridInfo()
 	m_grid.SetItemText(1, 4, L"0");
 	m_grid.SetItemText(1, 5, L"0");
 	m_grid.SetItemText(1, 6, L"0");
-	m_grid.SetItemText(1, 7, L"0");
 	
 	m_bRejectEditAttempts = TRUE;
 	m_bRejectEditChanges = TRUE;
@@ -184,8 +178,8 @@ void Grid_Area::Translate_Value(int a_select)
 		value = _tstof(str);
 
 		d_result = value + (D / 200);
-
-		str_result.Format(L"%.1f", floor(d_result * 10) / 10);
+						  
+		str_result.Format(L"%.1lf", floor(d_result * 10) / 10);
 		m_grid.SetItemText(i + 1, 4, str_result);
 
 		// F열
@@ -215,7 +209,7 @@ void Grid_Area::Translate_Value(int a_select)
 			value = _tstof(str);
 
 			d_result = value / D;
-			str_result.Format(L"%.4f", floor(d_result * 10000) / 10000);
+			str_result.Format(L"%.12lg", floor(d_result * 1000000000000) / 1000000000000);
 			m_grid.SetItemText(i, 7, str_result);
 
 			// F열
@@ -224,11 +218,11 @@ void Grid_Area::Translate_Value(int a_select)
 
 			d_result = ((-10 * pow(value, 3) + 15 * pow(value, 4) - 6 * pow(value, 5)) * (B - C)) + B;
 		}
-		str_result.Format(L"%.4f", floor(d_result * 10000) / 10000);
+		str_result.Format(L"%.12lg", floor(d_result * 1000000000000) / 1000000000000);
 		m_grid.SetItemText(i, 5, str_result);
 
 		// G열
-		str_result.Format(L"SPLINE %s, %s", m_grid.GetItemText(i, 4), m_grid.GetItemText(i, 5));
+		str_result.Format(L"SPLINE %s,%s", m_grid.GetItemText(i, 4), m_grid.GetItemText(i, 5));
 		m_grid.SetItemText(i, 6, str_result);
 	}
 	m_grid.Invalidate();

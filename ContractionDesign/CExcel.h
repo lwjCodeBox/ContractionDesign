@@ -19,8 +19,6 @@ public:
 	int Get_Sheet_Count() { return m_Book->sheetCount(); }	
 	CString GetExcelSheetName(int a_Sheet) { return m_Book->getSheet(a_Sheet)->name(); }
 	
-	Sheet *Get_Sheet(CString a_sheetName);
-
-	//bool Load_Excel_Sheet(CString a_sheetName);
+	Sheet *Get_Sheet(CString a_sheetName);	
 };
 
