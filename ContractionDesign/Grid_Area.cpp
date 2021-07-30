@@ -5,7 +5,6 @@
 #include "ContractionDesign.h"
 #include "Grid_Area.h"
 
-
 // Grid_Area
 
 IMPLEMENT_DYNAMIC(Grid_Area, CWnd)
@@ -161,9 +160,10 @@ void Grid_Area::OnGridEndEdit(NMHDR *pNotifyStruct, LRESULT *pResult)
 {
 	NM_GRIDVIEW *pItem = (NM_GRIDVIEW *)pNotifyStruct;
 	//*pResult = (m_bRejectEditChanges) ? -1 : 0;	
-	
+
 	Translate_Value(m_cur_combo_pos);
 }
+//-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
 void Grid_Area::Translate_Value(int a_select)
 {	
@@ -171,88 +171,45 @@ void Grid_Area::Translate_Value(int a_select)
 	CString str_result;	
 	double d_result;
 	double value;
+	const double _pi = 3.1415926;
+
 	double A = _tstof(m_grid.GetItemText(1, 0));
 	double B = _tstof(m_grid.GetItemText(1, 1));
 	double C = _tstof(m_grid.GetItemText(1, 2));
 	double D = _tstof(m_grid.GetItemText(1, 3));		
 	
-	switch (a_select) {
-	case 0: // Cubic
-		for (int i = 1; i < ROW_MAX_COUNT; ++i) {
-			// E열
-			str = m_grid.GetItemText(i, 4);
-			value = _tstof(str);
-
-			d_result = value + (D / 200);
-
-			str_result.Format(L"%.1f", floor(d_result * 10) / 10);
-			m_grid.SetItemText(i + 1, 4, str_result);
-
-			// F열
-			str = m_grid.GetItemText(i, 4);
-			value = _tstof(str);
-
-			d_result = (B / 2) - ((B - C) / 2) * ((3 * pow((value / D), 2)) - (2 * pow((value / D), 3)));
-
-			str_result.Format(L"%.4f", floor(d_result * 10000) / 10000);
-			m_grid.SetItemText(i, 5, str_result);
-
-			// G열
-			str_result.Format(L"SPLINE %s, %s", m_grid.GetItemText(i, 4), m_grid.GetItemText(i, 5));
-			m_grid.SetItemText(i, 6, str_result);
-		}
-		break;
-
-	case 1: // Cosine
-		MessageBox(L"Cosine 작업안됨.", NULL, MB_ICONERROR);
-		return;
-
-	case 2: // Morel
-		for (int i = 1; i < ROW_MAX_COUNT; ++i) {
-			// E열
-			str = m_grid.GetItemText(i, 4);
-			value = _tstof(str);
-
-			d_result = value + (D / 200);
-
-			str_result.Format(L"%.1f", floor(d_result * 10) / 10);
-			m_grid.SetItemText(i + 1, 4, str_result);
-
-			// F열
-			str = m_grid.GetItemText(i, 4);
-			value = _tstof(str);
-					
-			d_result = (C / 2) + ((B - C) / 2) * (1 - (pow((D / A), 2)) * (pow((value / D), 3)));
-
-			str_result.Format(L"%.4f", floor(d_result * 10000) / 10000);
-			m_grid.SetItemText(i, 5, str_result);
-
-			// G열
-			str_result.Format(L"SPLINE %s, %s", m_grid.GetItemText(i, 4), m_grid.GetItemText(i, 5));
-			m_grid.SetItemText(i, 6, str_result);
-		}
-		break;
-
-	case 3: // 2-Cubic
-		MessageBox(L"2-Cubic 작업안됨.", NULL, MB_ICONERROR);
-		return;
-
-	case 4: // 4th-order
-		MessageBox(L"4th-order 작업안됨.", NULL, MB_ICONERROR);		
-		return;
-
-	case 5: // 5th-order
+	for (int i = 1; i < ROW_MAX_COUNT; ++i) {
 		// E열
-		for (int i = 1; i < ROW_MAX_COUNT; ++i) {
-			// E열
-			str = m_grid.GetItemText(i, 4);
-			value = _tstof(str);
+		str = m_grid.GetItemText(i, 4);
+		value = _tstof(str);
 
-			d_result = value + (D / 200);
+		d_result = value + (D / 200);
 
-			str_result.Format(L"%.1f", floor(d_result * 10) / 10);
-			m_grid.SetItemText(i + 1, 4, str_result);
+		str_result.Format(L"%.1f", floor(d_result * 10) / 10);
+		m_grid.SetItemText(i + 1, 4, str_result);
 
+		// F열
+		str = m_grid.GetItemText(i, 4);
+		value = _tstof(str);
+
+		// Cubic
+		if (a_select == 0)  
+			d_result = (B / 2) - ((B - C) / 2) * ((3 * pow((value / D), 2)) - (2 * pow((value / D), 3)));
+		// Cosine
+		else if(a_select == 1)
+			d_result = 0.25 * ((B + C) + (B - C) * cos(_pi * value / D));
+		// Morel
+		else if (a_select == 2)
+			d_result = (C / 2) + ((B - C) / 2) * (1 - (pow((D / A), 2)) * (pow((value / D), 3)));
+		// 2-Cubic
+		else if (a_select == 3)
+			d_result = ((B - C) * (1 - ((pow((1 / A), 2)) * (pow(value, 3) / D))) + C);
+		// 4th-order
+		else if (a_select == 4) {			
+			
+		}
+		// 5th-order
+		else if (a_select == 5) {
 			// H열
 			str = m_grid.GetItemText(i, 4);
 			value = _tstof(str);
@@ -266,16 +223,13 @@ void Grid_Area::Translate_Value(int a_select)
 			value = _tstof(str);
 
 			d_result = ((-10 * pow(value, 3) + 15 * pow(value, 4) - 6 * pow(value, 5)) * (B - C)) + B;
-
-			str_result.Format(L"%.4f", floor(d_result * 10000) / 10000);
-			m_grid.SetItemText(i, 5, str_result);
-
-			// G열
-			str_result.Format(L"SPLINE %s, %s", m_grid.GetItemText(i, 4), m_grid.GetItemText(i, 5));
-			m_grid.SetItemText(i, 6, str_result);
 		}
-		break;
+		str_result.Format(L"%.4f", floor(d_result * 10000) / 10000);
+		m_grid.SetItemText(i, 5, str_result);
 
+		// G열
+		str_result.Format(L"SPLINE %s, %s", m_grid.GetItemText(i, 4), m_grid.GetItemText(i, 5));
+		m_grid.SetItemText(i, 6, str_result);
 	}
 	m_grid.Invalidate();
 }

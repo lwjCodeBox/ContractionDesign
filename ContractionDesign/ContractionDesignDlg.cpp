@@ -53,7 +53,7 @@ BOOL CContractionDesignDlg::OnInitDialog()
 	SetIcon(m_hIcon, FALSE);		// 작은 아이콘을 설정합니다.
 
 	// 버전 정보
-	SetDlgItemText(IDC_VERSION_STATIC, L"[Version : 2.0]");
+	SetDlgItemText(IDC_VERSION_STATIC, L"[Version : 2.1]");
 
 	// 대화상자 배경색 변경
 	SetBackgroundColor(RGB(50, 50, 50));
@@ -189,7 +189,14 @@ void CContractionDesignDlg::Set_combo()
 void CContractionDesignDlg::On_ComboChange()
 {
 	m_grid_area.m_cur_combo_pos = m_sheetName_combo.GetCurSel();
+	
+	if (4 == m_grid_area.m_cur_combo_pos) {
+		MessageBox(L"4th-order 작업안됨.", NULL, MB_ICONERROR);
+		return;
+	}
+
 	m_grid_area.Cell_Clear();
+	
 	m_grid_area.Translate_Value(m_grid_area.m_cur_combo_pos);
 
 #if 0 // 엑셀을 읽어오는 버전으로 사용한다면 이 주석을 풀어야 한다.

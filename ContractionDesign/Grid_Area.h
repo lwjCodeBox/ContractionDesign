@@ -1,5 +1,6 @@
 #pragma once
 #include "GridCtrl_src/GridCtrl.h"
+#include <cmath>
 
 #define GRID_ID_NUM						32000
 
@@ -25,9 +26,10 @@ private:
 	BOOL m_bRejectEditAttempts;
 	BOOL m_bRejectEditChanges;
 	int cnt = 0;
-
+	int m_ddd = 0;
+	
 public:
-	char m_cur_combo_pos;
+	char m_cur_combo_pos;	
 
 public:
 	// 툴바를 생성하는 함수
@@ -42,12 +44,17 @@ public:
 	}
 
 	inline void Grid_Area::Cell_Clear()
+	{		
+		//m_grid.ClearCells(CCellRange(2, 0, 201, 7));
+		m_grid.ClearCells(CCellRange(1, 7, 201, 7));
+	}
+	inline void Grid_Area::Cell_All_Clear()
 	{
 		// row start pos = 0
 		// row end pos = 201
 		// col start pos = 0
 		// col end pos = 7
-		m_grid.ClearCells(CCellRange(1, 0, 201, 7));				
+		m_grid.ClearCells(CCellRange(1, 0, 201, 7));
 	}
 
 	void Translate_Value(int a_select);
