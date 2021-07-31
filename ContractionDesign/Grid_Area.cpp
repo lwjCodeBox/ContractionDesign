@@ -100,7 +100,7 @@ void Grid_Area::UpdateGridInfo()
 	m_grid.SetFixedRowCount(1);
 	m_grid.SetBkColor(PIC_CTRL_BK_COLOR);
 	//m_grid.SetBkColor(RGB(100, 100, 100));
-	m_grid.SetFixedBkColor(RGB(0, 255, 255));
+	m_grid.SetFixedBkColor(RGB(115, 245, 231));
 
 	// grid option	
 	m_grid.SetTrackFocusCell(true);
